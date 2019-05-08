@@ -6,6 +6,11 @@ from skimage.io import imsave
 
 sys.path.append('.')
 sys.path.append('..')
+
+#REMOVE:
+from lib.ica.utils import print_attributes
+
+# Lib pvnet
 from lib.ransac_voting_gpu_layer.ransac_voting_gpu import ransac_voting_layer_v3, \
     estimate_voting_distribution_with_mean, ransac_voting_layer_v5, ransac_motion_voting
 from lib.networks.model_repository import *
@@ -142,6 +147,7 @@ def train(net, optimizer, dataloader, epoch):
     end=time.time()
     for idx, data in enumerate(dataloader):
         image, mask, vertex, vertex_weights, pose, _ = [d.cuda() for d in data]
+        print_attributes('dtype', 'shape', image=image, maskGT=mask, vertexGT=vertex, vertexWeightsGT=vertex_weights)
         data_time.update(time.time()-end)
 
         seg_pred, vertex_pred, loss_seg, loss_vertex, precision, recall = net(image, mask, vertex, vertex_weights)
@@ -321,7 +327,7 @@ def train_net():
         if train_cfg['use_fuse']:
             train_db+=image_db.fuse_set
 
-        train_set = LineModDatasetRealAug(train_db, cfg.LINEMOD, vote_type, augment=True, cfg=train_cfg['aug_cfg'], use_motion=motion_model)
+        train_set = LineModDatasetRealAug(train_db, cfg.LINEMOD, vote_type, augment=False, cfg=train_cfg['aug_cfg'], use_motion=motion_model)
         train_sampler = RandomSampler(train_set)
         train_batch_sampler = ImageSizeBatchSampler(train_sampler, train_cfg['train_batch_size'], False, cfg=train_cfg['aug_cfg'])
         train_loader = DataLoader(train_set, batch_sampler=train_batch_sampler, num_workers=4)

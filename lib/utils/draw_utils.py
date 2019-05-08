@@ -1,3 +1,7 @@
+
+# Own utils
+from lib.ica.utils import pltColorCycler
+
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,6 +10,7 @@ from transforms3d.euler import euler2mat
 from skimage.io import imsave
 from PIL import Image
 import os
+import random
 
 def visualize_bounding_box(rgb, corners_pred, corners_targets=None, centers_pred=None, centers_targets=None, save=False, save_fn=None):
     '''
@@ -19,6 +24,8 @@ def visualize_bounding_box(rgb, corners_pred, corners_targets=None, centers_pred
     :param save_fn:
     :return:
     '''
+    print('Visualizing Bounding Box')
+
     if isinstance(rgb, torch.Tensor):
         rgb = rgb.permute(0, 2, 3, 1).detach().cpu().numpy()
     rgb = rgb.astype(np.uint8)
@@ -46,6 +53,8 @@ def visualize_bounding_box(rgb, corners_pred, corners_targets=None, centers_pred
             plt.savefig(save_fn.format(idx))
         plt.close()
 
+    print(' ')
+
 def visualize_mask(mask_pred,mask_gt, save=False, save_fn=None):
     '''
 
@@ -53,6 +62,9 @@ def visualize_mask(mask_pred,mask_gt, save=False, save_fn=None):
     :param mask_gt:     [b,h,w]
     :return:
     '''
+
+    print('Visualizing Mask')
+
     b,h,w=mask_gt.shape
     for bi in range(b):
         img=np.zeros([h,w,3],np.uint8)
@@ -66,50 +78,48 @@ def visualize_mask(mask_pred,mask_gt, save=False, save_fn=None):
             plt.savefig(save_fn.format(bi))
         plt.close()
 
-def visualize_vertex_field(vertex_pred,vertex_weights, keypointIdx=0):
+    print(' ')
+
+def visualize_vertex_field(verPred, segPred, keypointIdx=0):
     
-    _,nKeypoints,h,w=vertex_weights.detach().cpu().numpy().shape
+    print('Visualizing Vertex Field.')
+
+    verWeight = segPred.float().cpu().detach()
+    verWeight = np.argmax(verWeight, axis=1)
+    verWeight = verWeight[None,:,:,:]
+
+    _,_,h,w=verWeight.detach().cpu().numpy().shape
     angle = np.zeros((h,w))
-    pred = vertex_pred.detach().cpu().numpy()
+    pred = verPred.detach().cpu().numpy()
 
     for i in range(h):
         for j in range(w):
             x,y = pred[0,[2*keypointIdx,2*keypointIdx+1],i,j]
             angle[i,j] = np.arctan2(-y,x)
-    angle = angle*vertex_weights.detach().cpu().numpy()[0,0,:,:]
+    angle = angle*verWeight.detach().cpu().numpy()[0,0,:,:]
     plt.imshow(angle)
     plt.hsv()
     plt.show()
 
-def visualize_overlap_mask(img,mask,save_fn):
-    b,h,w=mask.shape
-    rgb = Image.open('data/demo/cat.jpg')
+    print(' ')
 
-    print(rgb)
-    img = np.array(rgb)
-    print(img.shape)
-    #img = img[0,:,:,:]
-    #img = np.swapaxes(img,0,2)
-    #img = np.swapaxes(img,0,1)
-    #Image.fromarray
-    #img = img - np.min(img)
-    #img = img/np.max(img)*255
 
-    #plt.imshow(mask[1,:,:])
-    #print(img.shape)
 
-    #for i in range()
-    print(mask.shape)
-    print(np.max(mask))
+def visualize_overlap_mask(img, mask, save_fn):
 
-    for bi in range(1,b):
-        img[mask[bi]>0]= img[mask[bi]>0]//2 + np.array([0,0,128])[None,None,:]
-        #img[mask[bi]>0] = 0
-        #img[:, mask[bi]>0]//=2
-        #print(img[:, mask[bi]<0].shape)
-        #img[:, mask[bi]>0]=img[:, mask[bi]<0]+np.expand_dims(np.asarray([0,128,0],np.uint8),1)
-        plt.imshow(img)
-        #imsave(save_fn.format(bi),img[bi])
+    print('Visualizing Overlap Mask')
+
+    b,i,h,w=mask.shape
+    colorArr = np.random.rand(i,3)
+    colorArr = colorArr/np.linalg.norm(colorArr, axis=1, keepdims=True)*128
+    for bi in range(b):
+        imgTmp = img.copy()
+        for ii in range(i):
+            imgTmp[mask[bi, ii]>0]= img[mask[bi, ii]>0]//2 + colorArr[ii,:][None,None,:]
+        plt.imshow(imgTmp)    
+        plt.show()
+
+    print(' ')
 
 def visualize_points_3d(pts1,pts2,K,h=480,w=640):
     '''
@@ -178,7 +188,7 @@ def visualize_mask_multi_class(mask_pred, mask_gt, colors, save=False, save_fn=N
 def visualize_hypothesis(rgb, hyp_pts, hyp_counts, pts_target, save=False, save_fn=None):
     '''
 
-    :param rgb:         b,h,w
+    :param rgb:         b,h,w,3
     :param hyp_pts:     b,hn,vn,2
     :param hyp_counts:  b,hn,vn
     :param pts_target:  b,vn,2
@@ -186,6 +196,10 @@ def visualize_hypothesis(rgb, hyp_pts, hyp_counts, pts_target, save=False, save_
     :param save_fn:
     :return:
     '''
+
+    print('Visualizing hypotheses')
+    print('')
+
     b,hn,vn,_=hyp_pts.shape
     _,h,w,_=rgb.shape
     for bi in range(b):
@@ -221,7 +235,7 @@ def visualize_voting_ellipse(rgb,mean,var,target,save=False, save_fn=None):
     :param save_fn:
     :return:
     '''
-    b,vn,_=mean.shape
+    b,vn,_= mean.shape
     for bi in range(b):
         _, ax = plt.subplots(1)
 
@@ -280,8 +294,8 @@ def visualize_points(rgb, pts_target, pts_pred=None, save=False, save_fn=None):
     :param save_fn:
     :return:
     '''
-    print('pts_pred: ',pts_pred)
-    print('pts_pred.shape: ',pts_pred.shape)
+
+    print('Visualizing Projected Keypoints')
 
     if isinstance(rgb, torch.Tensor):
         rgb = rgb.permute(0, 2, 3, 1).detach().cpu().numpy()
@@ -299,6 +313,8 @@ def visualize_points(rgb, pts_target, pts_pred=None, save=False, save_fn=None):
         else:
             plt.savefig(save_fn.format(idx))
         plt.close()
+
+    print(' ')
 
 def visualize_keypoints(rgb, pts_target, pts_pred=None, save=False, save_fn=None):
     print('pts_target: ',pts_target)
@@ -383,3 +399,65 @@ def pts_to_img_pts(pts,R,T,K):
     img_dpt=img_pts[:,2]
     img_pts=img_pts[:,:2]/img_pts[:,2:]
     return img_pts,img_dpt
+
+
+
+def visualize_hypothesis_center(img, hypothesesPoints, scores, centers):
+    plt.imshow(img)
+    plt.scatter(hypothesesPoints[:,0], hypothesesPoints[:,1], s=0.5, c=scores.ravel(), alpha=0.5, marker=',')
+    plt.scatter(centers[0,:], centers[1,:], c='red')
+    plt.xlim(-img.shape[1]*0.25,img.shape[1]*1.25)
+    plt.ylim(-img.shape[0]*0.25,img.shape[0]*1.25)
+    plt.gca().invert_yaxis()
+    plt.gca().set_aspect('equal', adjustable='box')
+    plt.show()
+
+def visualize_instance_keypoints(img, keypoints, stretch=0, labelPoints=False):
+    # keypoints numpy array of shape (nInstances, nKeypoints, 2)
+    # stretch indicates how far beyond the image borders we should plot in each axis (%)
+    nInstances, nKeypoints, _ = keypoints.shape
+    height = img.shape[0]
+    width = img.shape[1]
+
+    colors = pltColorCycler(colormap='base', order='random', nColors=nInstances, seed=2)
+
+    plt.imshow(img)
+    # Note: Moves xlim and ylim over here, might break the tool
+    plt.xlim(-width*stretch, width*(1+stretch))
+    plt.ylim(-height*stretch, height*(1+stretch))
+    for iInstance in range(nInstances):
+        thisColor = next(colors)
+        plt.scatter(keypoints[iInstance,:,0], keypoints[iInstance,:,1], c=thisColor)
+        if labelPoints:
+            for i in range(nKeypoints):
+                plt.annotate(str(i), (keypoints[iInstance,i,0], keypoints[iInstance,i,1]))
+    # xlim ylim used to be here!
+    plt.gca().invert_yaxis()
+    plt.gca().set_aspect('equal', adjustable='box')
+    plt.show()
+    
+    
+def visualize_lines(img, lines, borders):
+    # Assume lines is np array of shape [3, nLines]
+    # Each line is represented with a vector [l1,l2,l3] s.t. l1*x+l2*y+l3 = 0 
+    # Since the image plane is infinite, we need to specify borders on which to plot
+    # borders is an array [xmin, xmax, ymin, ymax]
+    nLines = lines.shape[1]
+    xmin, xmax, ymin, ymax = tuple(borders)
+    for iLine in range(nLines):
+        l1, l2, l3 = tuple(lines[:,iLine])
+        x = np.linspace(xmin, xmax)
+        y = -(l3+l1*x)/l2
+        plt.plot(x, y)
+    plt.xlim(xmin, xmax)
+    plt.ylim(ymin, ymax)
+    plt.show()
+    
+    
+    
+    
+    
+    
+    
+    
+    

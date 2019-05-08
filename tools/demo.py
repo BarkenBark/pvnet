@@ -25,7 +25,7 @@ with open(args.cfg_file, 'r') as f:
     train_cfg = json.load(f)
 train_cfg['model_name'] = '{}_{}'.format(args.linemod_cls, train_cfg['model_name'])
 
-vote_num = 9
+vote_num = 10
 
 
 class NetWrapper(nn.Module):
@@ -74,10 +74,11 @@ def compute_vertex(mask, points_2d):
 def read_data():
     import torchvision.transforms as transforms
 
-    demo_dir_path = os.path.join(cfg.DATA_DIR, 'demo')
+    demo_dir_path = os.path.join(cfg.DATA_DIR, 'ICA/demo')
     rgb = Image.open(os.path.join(demo_dir_path, 'cat.jpg'))
-    mask = np.array(Image.open(os.path.join(demo_dir_path, 'cat_mask.png'))).astype(np.int32)[..., 0]
+    mask = np.array(Image.open(os.path.join(demo_dir_path, 'cat_mask.png')).convert('RGB')).astype(np.int32)[..., 0]
     mask[mask != 0] = 1
+    print(mask.shape)
     points_3d = np.loadtxt(os.path.join(demo_dir_path, 'cat_points_3d.txt'))
     bb8_3d = np.loadtxt(os.path.join(demo_dir_path, 'cat_bb8_3d.txt'))
     pose = np.load(os.path.join(demo_dir_path, 'cat_pose.npy'))
@@ -109,39 +110,44 @@ def demo():
     net = DataParallel(net)
 
     optimizer = optim.Adam(net.parameters(), lr=train_cfg['lr'])
-    model_dir = os.path.join(cfg.MODEL_DIR, "cat_demo")
+    model_dir = os.path.join(cfg.MODEL_DIR, 'ica_demo')
     load_model(net.module.net, optimizer, model_dir, args.load_epoch)
     data, points_3d, bb8_3d = read_data()
     image, mask, vertex, vertex_weights, pose, corner_target = [d.unsqueeze(0).cuda() for d in data]
+
+    # Run the net
     seg_pred, vertex_pred, loss_seg, loss_vertex, precision, recall = net(image, mask, vertex, vertex_weights)
 
+    print('vertex_pred.shape')
+    print(vertex_pred.shape)
+    print(' ')
 
-    #print(seg_pred.shape)
-    #print(seg_pred)
-    #print(vertex_pred.shape)
-    #print(vertex_pred)
-    #print(vertex_pred[0,0,0,0]**2 + vertex_pred[0,9,0,0]**2)
-    print(mask)
-    print(torch.max(mask))
-    #print(vertex_weights.shape)
-    #print(np.all(mask[0,:,:]==vertex_weights[0,0,:,:]))
-    #print(type(image))
-    npRgb = image.cpu().detach().numpy()
+    print('vertex_pred[0]')
+    print(vertex_pred)
+    print(' ')
 
-
-    visualize_vertex_field(vertex_pred,vertex_weights, keypointIdx=7)
+    # Various visualizations
+    visualize_vertex_field(vertex_pred,vertex_weights, keypointIdx=3)
+    print('asdasdsadas')
+    print(seg_pred.shape, mask.shape)
     visualize_mask(np.squeeze(seg_pred.cpu().detach().numpy()), mask.cpu().detach().numpy())
-    visualize_overlap_mask(npRgb, np.squeeze(seg_pred.cpu().detach().numpy()), None)
+    rgb = Image.open('data/demo/cat.jpg')
+    img = np.array(rgb)
+    visualize_overlap_mask(img, np.squeeze(seg_pred.cpu().detach().numpy()), None)
 
+    # Run the ransac voting
     eval_net = DataParallel(EvalWrapper().cuda())
     corner_pred = eval_net(seg_pred, vertex_pred).cpu().detach().numpy()[0]
+    print('Keypoint predictions:')
     print(corner_pred)
+    print(' ')
     camera_matrix = np.array([[572.4114, 0., 325.2611],
                               [0., 573.57043, 242.04899],
                               [0., 0., 1.]])
-    pose_pred = pnp(points_3d, corner_pred, camera_matrix) # Error here
-    print('pose_pred: ', pose_pred)
-    print('pose[0]: ', pose[0].detach().cpu().numpy())
+    pose_pred = pnp(points_3d, corner_pred, camera_matrix)
+    print('Predicted pose: \n', pose_pred)
+    print('Ground truth pose: \n', pose[0].detach().cpu().numpy())
+    print(' ')
 
     projector = Projector()
     bb8_2d_pred = projector.project(bb8_3d, pose_pred, 'linemod')

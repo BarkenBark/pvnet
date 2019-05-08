@@ -605,6 +605,8 @@ def ransac_voting_center(mask, vertex, round_hyp_num, inlier_thresh=0.99, confid
     :param inlier_thresh:
     :return: batch_instance_mask [b,h,w] max_instance_num [b]
     '''
+    #print('mask.shape : ' ,mask.shape)
+    #print('vertex.shape : ',vertex.shape)
     b, h, w, _ = vertex.shape
     vn=1
     batch_instance_mask = []
@@ -624,7 +626,9 @@ def ransac_voting_center(mask, vertex, round_hyp_num, inlier_thresh=0.99, confid
         coords_int = torch.nonzero(cur_mask)
         coords = coords_int.float()  # [tn,2]
         coords = coords[:, [1, 0]]
-        direct = vertex[bi].masked_select(torch.unsqueeze(torch.unsqueeze(cur_mask, 2), 3))  # [tn,2]
+        print('vertex[bi].shape: ', vertex[bi].shape)
+        print('torch.unsqueeze(torch.unsqueeze(cur_mask, 2), 3): ',torch.unsqueeze(torch.unsqueeze(cur_mask, 2), 3).shape)
+        direct = vertex[bi].masked_select(torch.unsqueeze(cur_mask, 2))  # [tn,2]
         direct = direct.view([coords.shape[0], 1, 2])
         tn = coords.shape[0]
         idxs = torch.zeros([round_hyp_num, 1, 2], dtype=torch.int32, device=mask.device).random_(0, direct.shape[0])

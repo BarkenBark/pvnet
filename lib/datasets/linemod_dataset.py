@@ -243,6 +243,16 @@ class LineModDatasetRealAug(Dataset):
 
         pose=torch.tensor(pose.astype(np.float32))
         hcoords=torch.tensor(hcoords.astype(np.float32))
+
+        # print('rgb.shape: ', rgb.shape)
+        # print('rgb.dtype: ', rgb.dtype)
+        # print('mask.shape: ', mask.shape)
+        # print('mask.dtype: ', mask.dtype)
+        # print('ver.shape: ', ver.shape)
+        # print('ver.dtype: ', ver.dtype)
+        # print('ver_weight.shape: ', ver_weight.shape)
+        # print('ver_weight.dtype: ', ver_weight.dtype)
+
         if self.use_intrinsic:
             return rgb, mask, ver, ver_weight, pose, hcoords, K
         else:
