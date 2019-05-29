@@ -13,7 +13,7 @@ sys.path.append('..')
 
 # Own modules
 from lib.ica.utils import *
-from lib.ica.run_utils import load_network, run_network, calculate_hypothesis, calculate_center, calculate_instance_segmentations, calculate_points
+from lib.ica.run_utils import load_network, run_network, calculate_hypothesis, calculate_center_2d, calculate_instance_segmentations, vertex_to_points
 
 # Pvnet modules
 from lib.networks.model_repository import Resnet18_8s
@@ -39,17 +39,17 @@ print('Done\n')
 # SETTINGS
 #############################
 
-dataDir = '/var/www/webdav/Data/ICA/Scene1/pvnet'
-className = 'tval'
-rgbIdx = 659
+dataDir = '/var/www/webdav/Data/ICA/Scenes/Deprecated/SceneDeprecated1/pvnet'
+className = 'tvalgron'
+rgbIdx = 600
 formats = {'rgbFormat':'jpg', 'rgbNLeadingZeros':0}
 
 # Implicit settings
-paths = get_work_paths(dataDir, className)
-#rgbDir = os.path.join(dataDir, 'rgb')
-#rgbPath = rgbDir + '/' + str(rgbIdx) + '.' + 'jpg' 
+classNameToIdx, _ = create_class_idx_dict(os.path.join(dataDir, 'models'))
+paths = get_work_paths(dataDir, className, classNameToIdx)
+
 nHypotheses = 1024
-nmsSettings = {'similariyThreshold':1/15, 'scoreThreshold': 180 , 'neighborThreshold': 40 }
+nmsSettings = {'similariyThreshold':1/15, 'scoreThreshold': 2 , 'neighborThreshold': 30 }
 ransacThreshold = 0.999
 instanceThresholdMultiplier = 0.9
 instanceDiscardThresholdMultiplier = 0.7
@@ -63,7 +63,7 @@ instanceDiscardThresholdMultiplier = 0.7
 
 # Calculate network output
 print('Loading network...')
-network = load_network(dataDir, className)
+network = load_network(paths)
 print('Running network...')
 segPred, verPred = run_network(network, paths, formats, rgbIdx=rgbIdx, batchSize=1)
 print('Done\n')
@@ -77,7 +77,10 @@ print('Done\n')
 
 # Determine number of instances, and their center point coordinates
 print('Running NMS...')
-centers = calculate_center(hypothesisPoints, inlierCounts, nmsSettings)
+centers = calculate_center_2d(hypothesisPoints, inlierCounts, nmsSettings)
+if centers.shape[1] == 0:
+	print('huaisdhuihiuewfhueiwf')
+	exit()
 print('Found {} centers'.format(centers.shape[1]))
 print('Done\n')
 
@@ -88,7 +91,7 @@ print('Done\n')
 
 # Run RANSAC for remaining keypoints, for each instance
 print('Running RANSAC for all keypoints...')
-points2D, covariance = calculate_points(verPred, instanceMasks, nHypotheses, ransacThreshold) # [nInstances, nKeypoints, 2], [nInstances, nKeypoints, 2, 2]
+points2D, covariance = vertex_to_points(verPred, instanceMasks, nHypotheses, ransacThreshold) # [nInstances, nKeypoints, 2], [nInstances, nKeypoints, 2, 2]
 print('Done\n')
 
 print('Points2D shape: ', points2D.shape)

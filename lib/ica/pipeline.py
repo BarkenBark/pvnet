@@ -10,7 +10,7 @@ sys.path.append('..')
 
 # Own modules
 from lib.ica.utils import *
-from lib.ica.run_utils import load_network, calculate_points #run_network, calculate_hypothesis, calculate_center_2d, calculate_instance_segmentations, vertex_to_points, load_network
+from lib.ica.run_utils import run_network, calculate_hypothesis, calculate_center, calculate_instance_segmentations, calculate_points, load_network
 
 # Pvnet modules
 from lib.networks.model_repository import Resnet18_8s
@@ -35,19 +35,20 @@ from lib.ica.globals import imageNetMean, imageNetStd
 #############################
 
 # Data
-dataDir = '/var/www/webdav/Data/ICA/Scenes/Deprecated/SceneDeprecated1/pvnet'
-className = 'tvalgron'
+dataDir = '/var/www/webdav/Data/ICA/Scene1/pvnet'
+className = 'tval'
 formats = {'rgbFormat':'jpg', 'rgbNLeadingZeros':0}
-cameraDownSampling = 10 # Keep every nth viewpoint
 
 # Method
-ransacSettings = {'nHypotheses':1024, 'threshold':0.999}
-nmsSettings = {'similariyThreshold':1/15, 'scoreThreshold': 180 , 'neighborThreshold':40} # TO-DO: Calculate actual values used in NMS by looking at max(linlierCounts)
-instanceSegSettings = {'thresholdMultiplier':0.9, 'discardThresholdMultiplier':0.7}
+nHypotheses = 1024
+nmsSettings = {'similariyThreshold':1/15, 'scoreThreshold': 180 , 'neighborThreshold': 40 } # TO-DO: Calculate actual values used in NMS by looking at max(linlierCounts)
+ransacThreshold = 0.999
+instanceThresholdMultiplier = 0.9
+instanceDiscardThresholdMultiplier = 0.7
+viewpointDownsampling = 10 # Keep every nth viewpoint for calculations
 
 # Implicit Settings
-classNameToIdx, _ = create_class_idx_dict(os.path.join(dataDir, 'models'))
-paths = get_work_paths(dataDir, className, classNameToIdx)
+paths = get_work_paths(dataDir, className)
 
 
 
@@ -64,17 +65,48 @@ paths = get_work_paths(dataDir, className, classNameToIdx)
 nImages = find_nbr_of_files(paths['rgbDir'], 'jpg')
 
 #Load the network
-network = load_network(paths)
+network = load_network(dataDir, className)
 
 # To be calculated
 points2D = [] # To be filled with np arrays of shape [nInstances, nKeypoints, 2]. NOTE: nInstances is specific to each viewpoint/image
 covariance = [] # To be filled with np arrays of shape [nInstances, nKeyPoints, 2, 2]. NOTE: nInstances is specific to each viewpoint/image
 
+def run_pipeline(rgbIdx):
+	# Calculate network output
+	# print('Running network...')
+	segPred, verPred = run_network(network, paths, formats, rgbIdx=rgbIdx, batchSize=1)
+	# print('Done\n')
+
+	# Run RANSAC for center point only
+	# print('Running RANSAC for center keypoint...')
+	hypothesisPoints, inlierCounts = calculate_hypothesis(segPred, verPred, nHypotheses, ransacThreshold, keypointIdx=[0])
+	# print('Done\n')
+
+	# Determine number of instances, and their center point coordinates
+	# print('Running NMS...')
+	centers = calculate_center_2d(hypothesisPoints, inlierCounts, nmsSettings)
+	if centers.shape[1] == 0:
+		return None, None
+	# print('Done\n')
+
+	# Split segmentation into different instance masks
+	# print('Generating instance masks...')
+	instanceMasks = calculate_instance_segmentations(segPred, verPred[0,0:2,:,:], centers, instanceThresholdMultiplier*ransacThreshold, instanceDiscardThresholdMultiplier)
+	# print('Done\n')
+
+	# Run RANSAC for remaining keypoints, for each instance
+	# print('Running RANSAC for all keypoints...')
+	points2D, covariance = calculate_points_2d(verPred, instanceMasks, nHypotheses, ransacThreshold) # [nInstances, nKeypoints, 2], [nInstances, nKeypoints, 2, 2]
+
+
+
+	return points2D, covariance
+
 
 startTime = time.time()
-for iImage in range(599,nImages):
+for iImage in range(nImages):
 	print(iImage)
-	thisPoints2D, thisCovariance = calculate_points(iImage+1, network, paths, formats, ransacSettings, nmsSettings, instanceSegSettings)
+	thisPoints2D, thisCovariance = run_pipeline(iImage+1)
 	if (thisPoints2D is not None) & (thisCovariance is not None):
 		points2D.append(thisPoints2D.cpu().detach().numpy())
 		covariance.append(thisCovariance.cpu().detach().numpy())

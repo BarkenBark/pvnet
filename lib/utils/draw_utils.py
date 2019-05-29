@@ -6,6 +6,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from mpl_toolkits.mplot3d import Axes3D
 from transforms3d.euler import euler2mat
 from skimage.io import imsave
 from PIL import Image
@@ -80,7 +81,29 @@ def visualize_mask(mask_pred,mask_gt, save=False, save_fn=None):
 
     print(' ')
 
-def visualize_vertex_field(verPred, segPred, keypointIdx=0):
+def visualize_vertex_field(verPred, mask, keypointIdx=0):
+    
+    print('Visualizing Vertex Field.')
+
+    verWeight = mask.float().cpu().detach()
+    verWeight = verWeight[None,:,:,:]
+
+    _,_,h,w=verWeight.detach().cpu().numpy().shape
+    angle = np.zeros((h,w))
+    pred = verPred.detach().cpu().numpy()
+
+    for i in range(h):
+        for j in range(w):
+            x,y = pred[0,[2*keypointIdx,2*keypointIdx+1],i,j]
+            angle[i,j] = np.arctan2(-y,x)
+    angle = angle*verWeight.detach().cpu().numpy()[0,0,:,:]
+    plt.imshow(angle)
+    plt.hsv()
+    plt.show()
+
+    print(' ')
+
+def visualize_vertex_field_old(verPred, segPred, keypointIdx=0):
     
     print('Visualizing Vertex Field.')
 
@@ -102,7 +125,6 @@ def visualize_vertex_field(verPred, segPred, keypointIdx=0):
     plt.show()
 
     print(' ')
-
 
 
 def visualize_overlap_mask(img, mask, save_fn):
@@ -402,14 +424,19 @@ def pts_to_img_pts(pts,R,T,K):
 
 
 
-def visualize_hypothesis_center(img, hypothesesPoints, scores, centers):
-    plt.imshow(img)
-    plt.scatter(hypothesesPoints[:,0], hypothesesPoints[:,1], s=0.5, c=scores.ravel(), alpha=0.5, marker=',')
-    plt.scatter(centers[0,:], centers[1,:], c='red')
-    plt.xlim(-img.shape[1]*0.25,img.shape[1]*1.25)
-    plt.ylim(-img.shape[0]*0.25,img.shape[0]*1.25)
-    plt.gca().invert_yaxis()
-    plt.gca().set_aspect('equal', adjustable='box')
+def visualize_hypothesis_center(img, hypothesesPoints, scores, centers=None):
+    if img is not None:
+        plt.imshow(img)
+    c = scores.ravel()
+    c = c/np.max(c)
+    plt.scatter(hypothesesPoints[:,0], hypothesesPoints[:,1], s=0.5, c=c, alpha=0.5, marker=',')
+    if centers is not None:
+        plt.scatter(centers[0,:], centers[1,:], c='red')
+    if img is not None:
+        plt.xlim(-img.shape[1]*0.25,img.shape[1]*1.25)
+        plt.ylim(-img.shape[0]*0.25,img.shape[0]*1.25)
+        plt.gca().invert_yaxis()
+        plt.gca().set_aspect('equal', adjustable='box')
     plt.show()
 
 def visualize_instance_keypoints(img, keypoints, stretch=0, labelPoints=False):
@@ -453,7 +480,25 @@ def visualize_lines(img, lines, borders):
     plt.ylim(ymin, ymax)
     plt.show()
     
-    
+
+def visualize_hypothesis_center_3d(hypothesesPoints, scores, centers=None, borders=None):
+    # hypothesisPoints - (nHypotheses, 3) np array
+    # scores - (nHypotheses,) np array with scores of each hypothesis
+    # centers - (nCenters, 3) np array containing som reference points to plot  
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    scatter = ax.scatter(hypothesesPoints[:,0], hypothesesPoints[:,1], hypothesesPoints[:,2], s=0.5, c=scores.ravel(), alpha=0.5, marker='.')
+    cb = fig.colorbar(scatter, ax=ax)
+    if centers is not None:
+        ax.scatter(centers[:,0], centers[:,1], centers[:,2], c='red', alpha=0.25)
+    if borders is not None:
+        ax.set_xlim(borders[0], borders[1])
+        ax.set_ylim(borders[2], borders[3])
+        ax.set_zlim(borders[4], borders[5])
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    plt.show()
     
     
     

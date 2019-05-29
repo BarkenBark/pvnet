@@ -42,8 +42,8 @@ from lib.ica.globals import imageNetMean, imageNetStd
 # Argument variables (TODO: Parse from argument or settings file)
 #################################
 # Paths
-dataDir = '/var/www/webdav/Data/ICA/Scene1/pvnet'
-className = 'tval' # MAYBE REPLACE WITH CLASSIDX NUMBER?
+dataDir = '/var/www/webdav/Data/ICA/Scenes/Train/Scene1/pvnet'
+className = 'seltin' # MAYBE REPLACE WITH CLASSIDX NUMBER?
 # Training parameters
 nEpochs = 100
 resumeTraining = False
@@ -67,17 +67,6 @@ learningRate = 1e-3
 
 
 
-# FUNCTION DEFINITIONS
-################################ 
-
-def create_class_idx_dict(modelDir):
-	# Checks the names of the .ply files in the model directory, and creates a dictionary mapping modelnames to class indices
-	filenames = os.listdir(modelDir)
-	classNames = [s.replace('.ply', '') for s in filenames if s.endswith('.ply')]
-	classNames.sort()
-	classNameToIdx = {classNames[i]:(i+1) for i in range(0, len(classNames))}
-	return classNameToIdx
-
 
 
 # CLASS DEFINITIONS
@@ -87,7 +76,7 @@ class IcaDataset(Dataset):
 	def __init__(self, classIdx, nLeadingZerosFormat, rgbDir, rgbFormat, segDir, segFormat, posesPath, keypoints, K):
 
 		# Trivial class member initilizations
-		self.classIdx = classIdx
+		self.classIdx = classIdx # NOTE: Indexed from 1 to nClasses
 		self.nLeadingZerosFormat = nLeadingZerosFormat
 		self.rgbDir = rgbDir
 		self.rgbFormat = rgbFormat
@@ -98,7 +87,7 @@ class IcaDataset(Dataset):
 		self.K = K
 
 		# Define transformation to normalize input images with ImageNet values
-		self.test_img_transforms=transforms.Compose([
+		self.test_img_transforms = transforms.Compose([
 		    transforms.ToTensor(), # if image.dtype is np.uint8, then it will be divided by 255
 		    transforms.Normalize(mean=imageNetMean,
 		                         std=imageNetStd)
@@ -145,11 +134,11 @@ class IcaDataset(Dataset):
 		nInstances = sum(idxMatch)
 
 		idx = [i for i,j in enumerate(instanceIdx) if j==self.classIdx] 
-		poses = [parse_pose(poseData, index, iPose) for iPose in idx]
+		poses = [parse_pose(self.poseData, index, iPose) for iPose in idx]
 
 		for iInstance in range(nInstances):
 			thisMask = instanceSegImg == idx[iInstance]+1
-			keypointsProjected = self.K @ (poses[iInstance] @ pextend(keypoints))
+			keypointsProjected = self.K @ (poses[iInstance] @ pextend(self.keypoints, vecType='col'))
 			keypointsProjected = pflat(keypointsProjected)
 			ver = ver + compute_vertex_hcoords(thisMask, keypointsProjected.T)
 
@@ -180,24 +169,23 @@ class IcaDataset(Dataset):
 
 # TO-DO: Replace with get_work_paths
 # Implicit paths 
-networkDir = os.path.join(dataDir, 'network')
-modelDir = os.path.join(dataDir, 'models')
-poseOutDir = os.path.join(dataDir, 'poseannotation_out')
-trainRgbDir = os.path.join(dataDir, 'rgb')
-trainSegDir = os.path.join(dataDir, 'seg')
-networkPath = os.path.join(networkDir, className, className+'Network.pth')
-keypointsPath = os.path.join(poseOutDir, 'keypoints', className+'_keypoints.txt')
-posesPath = os.path.join(poseOutDir, 'poses.yml')
+paths = get_work_paths(dataDir, className=className)
+
+# If networkDir does not exist, create it
+try:
+	os.mkdir(os.path.join(paths['networkDir'], className))
+except FileExistsError:
+	print('Network directory already exists.')
 
 # Implicit variables
 ####################################
 rgbFormat = 'jpg' # (TODO: FORMAT OF FIRST IMAGE IN RGB-DIRECTORY)
 segFormat = 'png' # (TODO: FORMAT OF FIRST IMAGE IN SEG-DIRECTORY)
 nLeadingZerosFormat = 5 # (TODO: FORMAT OF FIRST IMAGE IN SEG-DIRECTORY. ASSERT SAME AS RGB)
-keypoints = parse_3D_keypoints(keypointsPath, addCenter=True)
+keypoints = parse_3D_keypoints(paths['keypointsPath'], addCenter=True)
 nKeypoints = keypoints.shape[1]
-classNameToIdx = create_class_idx_dict(modelDir)
-K = parse_inner_parameters(trainRgbDir + '/camera.yml') # Camera inner parameters
+classNameToIdx, _ = create_class_idx_dict(paths['modelDir'])
+K = parse_inner_parameters(paths['rgbDir'] + '/camera.yml') # Camera inner parameters
 
 
 
@@ -220,15 +208,15 @@ K = parse_inner_parameters(trainRgbDir + '/camera.yml') # Camera inner parameter
 network = Resnet18_8s(ver_dim=nKeypoints*2, seg_dim=2)
 network = DataParallel(network).cuda()
 if resumeTraining:
-	print('Attempting to load weights from ' + networkPath)
-	if os.path.isfile(networkPath):
-		network.load_state_dict(torch.load(networkPath))
+	print('Attempting to load weights from ' + paths['networkPatḧ́'])
+	if os.path.isfile(paths['networkPatḧ́']):
+		network.load_state_dict(torch.load(paths['networkPatḧ́']))
 	else:
-		input('No network found at ' + networkPath + ', training network from scratch. Press enter to continue.')
+		input('No network found at ' + paths['networkPatḧ́'] + ', training network from scratch. Press enter to continue.')
 
 # Create the dataloader
 classIdx = classNameToIdx[className]
-trainSet = IcaDataset(classIdx, nLeadingZerosFormat, trainRgbDir, rgbFormat, trainSegDir, segFormat, posesPath, keypoints, K) # Torch dataset
+trainSet = IcaDataset(classIdx, nLeadingZerosFormat, paths['rgbDir'], rgbFormat, paths['segDir'], segFormat, paths['posesPath'], keypoints, K) # Torch dataset
 trainSampler = RandomSampler(trainSet)
 trainBatchSampler = BatchSampler(trainSampler, batchSize, drop_last=True)  # Torch sampler
 trainLoader = DataLoader(trainSet, batch_sampler=trainBatchSampler, num_workers=8)
@@ -295,7 +283,7 @@ for iEpoch in range(nEpochs):
 			print()
 
 	# Save the model (TODO: Bake the datetime into filename)
-	torch.save(network.state_dict(), networkPath)
+	torch.save(network.state_dict(), paths['networkPath'])
 
 	# Retrieve time
 	tEpochElapsed = time.time() - tEpochStart
