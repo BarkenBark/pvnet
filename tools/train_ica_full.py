@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+import argparse
 sys.path.append('.')
 sys.path.append('..')
 
@@ -34,6 +35,28 @@ from lib.ica.globals import imageNetMean, imageNetStd
 
 
 
+# PARSE ARGUMENTS
+###############################################
+
+# Parse classname
+parser = argparse.ArgumentParser()
+parser.add_argument('-c', '--classname', help='Name of the class for which to train a network')
+args = parser.parse_args()
+className = args.classname
+if className is None:
+	print('WARNING: No class specified. Using class specified in file.')
+	# print('Exiting program.')
+	# exit()
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -45,9 +68,14 @@ from lib.ica.globals import imageNetMean, imageNetStd
 
 # Paths
 dataDir = '/var/www/webdav/Data/ICA/'
-className = 'makaroner' # MAYBE REPLACE WITH CLASSIDX NUMBER?
+if className is None:
+	className = 'makaroner' # MAYBE REPLACE WITH CLASSIDX NUMBER?
 formats = {'rgbFormat':'png', 'rgbNLeadingZeros':0, 'segFormat':'png', 'segNLeadingZeros':5}
 resultsPath = '/var/www/webdav/Data/ICA/Results/results.pickle' # For loss series
+
+# Misc
+skipInvisible = False # True => Images in which instances of the class cannot be seen due to truncation (out of bounds) are not included in the training
+visThreshold = 0.5 # The minimum visibility value for an instance to be considered visibile in an image
 
 # Training parameters
 nEpochs = 1000
@@ -69,6 +97,13 @@ learningRate = 1e-3
 trainScenesDir = os.path.join(dataDir, 'Scenes', 'Train')
 valScenesDir = os.path.join(dataDir, 'Scenes', 'Validation')
 modelDir = os.path.join(dataDir, 'Models', 'models_meter')
+classNameToIdx, classIdxToName = create_class_idx_dict(modelDir)
+try: # Assert that the specified className is valid before proceeding
+	classNameToIdx[className]
+except KeyError:
+	print('The specified class name *'+className+'* is not valid. (Can\'t find in model directory)')
+	print('Exiting program.')
+	exit()
 networkDir = os.path.join(dataDir, 'Networks')
 networkPath = os.path.join(networkDir, className, className+'Network.pth')
 
@@ -79,7 +114,6 @@ except FileExistsError:
 	print('Network directory already exists.')
 
 # Implicit values
-classNameToIdx, classIdxToName = create_class_idx_dict(modelDir)
 modelPath = os.path.join(modelDir, )
 keypointsPath = os.path.join(modelDir, str(classNameToIdx[className])+'_keypoints.txt')
 keypoints = parse_3D_keypoints(keypointsPath, addCenter=True) # MAKE SURE THERE ARE KEYPOINTS.TXT FOR EVERY MODEL
@@ -114,17 +148,26 @@ def load_inner_parameters(sceneDirs):
 		thisK = parse_inner_parameters(cameraPath)
 		K.append(thisK)
 	return K
-def load_pose_data(sceneDirs):
+def load_pose_data(sceneDirs, verbose=False):
 	poseData = []
-	for sceneDir in sceneDirs:
+	nScenes = len(sceneDirs)
+	for iScene, sceneDir in enumerate(sceneDirs):
+		if verbose:
+			sys.stdout.write("\rReading pose data for scene {}/{}".format(iScene+1,nScenes))
+			sys.stdout.flush()
 		posesPath = os.path.join(sceneDir, 'poseannotation_out/poses.yml')
-		thisPoseData = yaml.load(open(posesPath, 'r'))
+		thisPoseData = yaml.load(open(posesPath, 'r'), Loader=yaml.UnsafeLoader)
 		poseData.append(thisPoseData)
+	if verbose: sys.stdout.write('\n')
 	return poseData
+def load_visibility_data(visibilityPath):
+	with open(visibilityPath, 'r') as f:
+		visibilityData = yaml.load(f, Loader=yaml.UnsafeLoader)
+	return visibilityData
 
 # ICA Dataset Class (Complete with init, getitem and len)
 class IcaDataset(Dataset):
-	def __init__(self, classIdx, scenesDir, formats, keypoints):
+	def __init__(self, classIdx, scenesDir, formats, keypoints, skipInvisible=False):
 
 		# Trivial class member initilizations
 		self.classIdx = classIdx # NOTE: Indexed from 1 to nClasses
@@ -139,7 +182,7 @@ class IcaDataset(Dataset):
 		self.K = load_inner_parameters(self.sceneDirs)
 
 		# Load poseData for each scene (list of length nScenes)
-		self.poseData = load_pose_data(self.sceneDirs)
+		self.poseData = load_pose_data(self.sceneDirs, verbose=True)
 
 		# Define transformation to normalize input images with ImageNet values
 		self.test_img_transforms = transforms.Compose([
@@ -149,7 +192,7 @@ class IcaDataset(Dataset):
 		])
 
 		# Store formats for each individual scene in a list of length nScenes
-		self.formatList = parse_rgb_formats(self.sceneDirs) #['jpg', 'png']	
+		self.formatList = parse_rgb_formats(self.sceneDirs)
 
 		# Check number of images across all Scene directories to determine self.len
 		# Also build self.idxToSceneView, mapping sampler index to scene and viewpoint index
@@ -161,11 +204,21 @@ class IcaDataset(Dataset):
 			thisRgbDir = os.path.join(sceneDir, 'rgb')
 			thisSegDir = os.path.join(sceneDir, 'seg')
 			thisNFiles = find_nbr_of_files(thisRgbDir, format=self.formatList[iScene])
-			
 			assert(thisNFiles == find_nbr_of_files(thisSegDir, format=self.formats['segFormat']))
-			self.len = self.len + thisNFiles
-			self.idxToSceneView += [(iScene+1,iImg+1) for iImg in range(thisNFiles)]
-			print('Found ' + str(thisNFiles) + ' images in ' + thisRgbDir)
+			if skipInvisible:
+				visibilityPath = os.path.join(sceneDir, 'visibility.yml') # TO-DO: Establish this
+				visibility = load_visibility_data(visibilityPath)
+				instanceIdx = [iInstance for iInstance, instanceDict in enumerate(self.poseData[iScene][0]) if instanceDict['obj_id']==self.classIdx] # Assuming the same instances have entries for every viewpoint
+				classVisibility = [max([visibility[iImg][iInstance]['visibility'] for iInstance in instanceIdx]) for iImg in range(thisNFiles)]
+				print(classVisibility)
+				thisNVisibleFiles = sum(1 for vis in classVisibility if vis >= visThreshold)
+				self.len += thisNVisibleFiles
+				self.idxToSceneView += [(iScene+1, iImg+1) for iImg in range(thisNFiles) if classVisibility[iImg] >= visThreshold]
+				print('Found ' + str(thisNVisibleFiles) + ' images in ' + thisRgbDir + ' where at least one instance is visible.')
+			else:
+				self.len += thisNFiles
+				self.idxToSceneView += [(iScene+1,iImg+1) for iImg in range(thisNFiles)]
+				print('Found ' + str(thisNFiles) + ' images in ' + thisRgbDir)
 
 		# Assert conditions
 		assert(self.len == len(self.idxToSceneView))
@@ -380,7 +433,7 @@ if resumeTraining:
 
 # Create the training dataloader
 classIdx = classNameToIdx[className]
-trainSet = IcaDataset(classIdx, trainScenesDir, formats, keypoints)
+trainSet = IcaDataset(classIdx, trainScenesDir, formats, keypoints, skipInvisible=skipInvisible)
 trainSampler = RandomSampler(trainSet)
 trainBatchSampler = BatchSampler(trainSampler, batchSize, drop_last=True)  # Torch sampler
 trainLoader = DataLoader(trainSet, batch_sampler=trainBatchSampler, num_workers=8)
