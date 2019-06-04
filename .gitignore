@@ -4,6 +4,8 @@
 *.pth
 assets/*
 assets
+*.pickle
+*.npy
 
 # compile
 cmake-build-debug/
