@@ -5,16 +5,29 @@ import itertools
 import yaml
 from matplotlib import colors as mcolors
 import cv2
+from plyfile import PlyData
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # GENERALLY USEFUL
 #############################################
 
 # Variables 
 pltColorsBase = list(dict(mcolors.BASE_COLORS).keys())
 pltColorsCSS4 = list(dict(mcolors.CSS4_COLORS).keys())
-
-
-
-
 
 # Functions
 
@@ -105,6 +118,34 @@ def changeNumFormat(directory, fileFormat=None, nLeadingZeros=5):
 					os.rename(fileName, newFileName)
 				except ValueError:
 					pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -234,6 +275,40 @@ def rotationMatrixToEulerAngles(R) :
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # USEFUL ONLY FOR THIS PROJECT
 #############################################
 
@@ -331,7 +406,7 @@ def parse_motion(motionPath):
 	return motion
 
 def parse_inner_parameters(cameraPath):
-	cameraData = yaml.load(open(cameraPath, 'r'))
+	cameraData = yaml.load(open(cameraPath, 'r'), Loader=yaml.UnsafeLoader)
 	K = np.zeros((3,3))
 	K[0,0] = cameraData['fx']
 	K[1,1] = cameraData['fy']
@@ -374,3 +449,11 @@ def calculate_pose(points2D, points3D,camera_matrix):
 		poses[iPoint] = pose
 	return poses
 
+
+def load_model_pointcloud(modelDir, modelIdx):
+	modelPath = os.path.join(modelDir, str(modelIdx)+'.ply')
+	plyData = PlyData.read(modelPath)
+	vertex = plyData['vertex']
+	(x,y,z) = (vertex[coord] for coord in ('x', 'y', 'z'))
+	X = np.stack((x,y,z), axis=1)
+	return X

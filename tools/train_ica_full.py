@@ -106,6 +106,8 @@ except KeyError:
 	exit()
 networkDir = os.path.join(dataDir, 'Networks')
 networkPath = os.path.join(networkDir, className, className+'Network.pth')
+optimizerPath = os.path.join(networkDir, className, className+'Optimizer.pth')
+
 
 # If networkDir does not exist, create it
 try:
@@ -210,7 +212,7 @@ class IcaDataset(Dataset):
 				visibility = load_visibility_data(visibilityPath)
 				instanceIdx = [iInstance for iInstance, instanceDict in enumerate(self.poseData[iScene][0]) if instanceDict['obj_id']==self.classIdx] # Assuming the same instances have entries for every viewpoint
 				classVisibility = [max([visibility[iImg][iInstance]['visibility'] for iInstance in instanceIdx]) for iImg in range(thisNFiles)]
-				print(classVisibility)
+				#print(classVisibility)
 				thisNVisibleFiles = sum(1 for vis in classVisibility if vis >= visThreshold)
 				self.len += thisNVisibleFiles
 				self.idxToSceneView += [(iScene+1, iImg+1) for iImg in range(thisNFiles) if classVisibility[iImg] >= visThreshold]
@@ -235,7 +237,6 @@ class IcaDataset(Dataset):
 
 		# Decide which scene and which image this sample index corresponds to
 		sceneIdx, viewIdx = self.idxToSceneView[index]
-		#sceneDir = os.path.join(self.scenesDir, 'Scene'+str(sceneIdx), 'pvnet')
 		sceneDir = self.sceneDirs[sceneIdx-1]
 
 		# RGB
@@ -431,6 +432,15 @@ if resumeTraining:
 	else:
 		input('No network found at ' + networkPath + ', training network from scratch. Press enter to continue.')
 
+# Initialize the optimizer
+optimizer = Adam(network.parameters(), lr=learningRate)
+if resumeTraining:
+	print('Attempting to load optimizer state from ' + optimizerPath)
+	if os.path.isfile(optimizerPath):
+		optimizer.load_state_dict(torch.load(optimizerPath))
+	else:
+		input('No optimizer state found at ' + optimizerPath + ', initializing optimizer from scratch. Press enter to continue.')
+
 # Create the training dataloader
 classIdx = classNameToIdx[className]
 trainSet = IcaDataset(classIdx, trainScenesDir, formats, keypoints, skipInvisible=skipInvisible)
@@ -443,9 +453,6 @@ valSet = IcaDataset(classIdx, valScenesDir, formats, keypoints)
 valSampler = RandomSampler(valSet)
 valBatchSampler = BatchSampler(valSampler, batchSize, drop_last=True)  # Torch sampler
 valLoader = DataLoader(valSet, batch_sampler=valBatchSampler, num_workers=8)
-
-# Initialize the optimizer
-optimizer = Adam(network.parameters(), lr=learningRate)
 
 # Initialize loss lists
 trainLossTotal = zeros((nEpochs))
@@ -485,7 +492,8 @@ for iEpoch in range(nEpochs):
 
 	# Validate the model
 	tValEpochStart = time.time()
-	valLossTotal[iEpoch], valLossVertexTotal[iEpoch], valLossSegTotal[iEpoch] = validate(network, valLoader)
+	# valLossTotal[iEpoch], valLossVertexTotal[iEpoch], valLossSegTotal[iEpoch] = validate(network, valLoader)
+	valLossTotal[iEpoch], valLossVertexTotal[iEpoch], valLossSegTotal[iEpoch] = (0,0,0)
 	print()
 	print('Validation loss at the end of epoch {}: {}'.format(str(iEpoch), valLossTotal[iEpoch]))
 	print('Time elapsed: {}'.format(time.time() - tValEpochStart))
@@ -509,6 +517,7 @@ for iEpoch in range(nEpochs):
 	if valLossTotal[iEpoch] < valLossBest:
 		valLossBest = valLossTotal[iEpoch]
 		torch.save(network.state_dict(), networkPath)
+		torch.save(optimizer.state_dict(), optimizerPath)
 		print('Saved model at the end of epoch {}.'.format(iEpoch))
 		if valLossBest < valLossEarlyStoppingBest*(1-minDeltaFactor):
 			valLossEarlyStoppingBest = valLossBest

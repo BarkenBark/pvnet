@@ -11,6 +11,7 @@ import yaml
 import time
 import argparse
 import numpy as np
+from PIL import Image
 
 # Import pvnet moduels
 from lib.utils.data_utils import read_rgb_np
@@ -79,6 +80,36 @@ def CalculateVisibility(data, iView, iInstance):
 	return visibility
 
 
+def CalculateVisibilityNew(data, iView, iInstance):
+	# INPUT: poseData - The poseData (R, t, classIdx) of a single instance
+	# Project CAD model onto image plane, count nbr of pixels within segmented area
+	pose = parse_pose(data, iView, iInstance)
+	classIdx = data[iView][iInstance]['obj_id']
+	X = cadX[classIdx-1]
+	x = np.transpose(pflat(K@pose@np.transpose(pextend(X))))
+	#nPoints = x.shape[0]
+	xPixels = x[:,0:2].round().astype(int)
+	xPixels = np.unique(xPixels, axis=0)
+	nPixels = xPixels.shape[0]
+	segPath = os.path.join(sceneDir,'seg',str(iView+1).zfill(5)+'.png')
+	seg = np.asarray(Image.open(segPath))
+	
+	# Filter out pixels out of bounds
+	x = xPixels[:,0]
+	y = xPixels[:,1]
+	width = 640
+	height = 360
+	mask = np.logical_and(np.logical_and(x>=0, x<width), np.logical_and(y>=0, y<height))
+	x = x[mask]
+	y = y[mask]
+	xPixelsNew = np.stack((x,y), axis=1)
+
+	# Count proportion of projected points within segmentation area
+	nPointsInSeg = np.sum(seg[xPixelsNew[:,1],xPixelsNew[:,0]]==(iInstance+1))
+	visibility = float(nPointsInSeg/nPixels)
+	
+	return visibility
+
 
 
 # START MAIN SCRIPT
@@ -99,7 +130,7 @@ for iView in range(nViews):
 	poseDataView = poseData[iView]
 	thisVisData = []
 	for iInstance in range(len(poseDataView)):
-		visibility = CalculateVisibility(poseData, iView, iInstance)
+		visibility = CalculateVisibilityNew(poseData, iView, iInstance)
 		poseData[iView][iInstance]['visibility'] = visibility
 		thisVisData.append({'visibility': visibility})
 	visibilityData.append(thisVisData)
