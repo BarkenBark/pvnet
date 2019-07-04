@@ -291,7 +291,7 @@ def validate(network, valLoader):
 
 	return lossTotal, lossVertexTotal, lossSegTotal
 
-def train_ica_full(className, dataDir, formats, resultsPath, skipInvisible = False,
+def train_ica_full(className, dataDir, formats, skipInvisible = False,
                    visThreshold = 0.5, nEpochs = 1000, resumeTraining = False, 
                    batchSize = 16, lossRatio = 0.5, patience = 10, minDeltaFactor = 0.05
                    learningRate = 1e-3)
@@ -307,19 +307,20 @@ def train_ica_full(className, dataDir, formats, resultsPath, skipInvisible = Fal
         	print('The specified class name *'+className+'* is not valid. (Can\'t find in model directory)')
         print('Exiting program.')
         exit()
-    networkDir = os.path.join(dataDir, 'Networks')
-    networkPath = os.path.join(networkDir, className, className+'Network.pth')
-    optimizerPath = os.path.join(networkDir, className, className+'Optimizer.pth')
-    
     
     # If networkDir does not exist, create it
     try:
+    		networkDir = os.path.join(dataDir, 'Networks', className)
         	os.mkdir(os.path.join(networkDir, className))
     except FileExistsError:
         	print('Network directory already exists.')
+
+    networkPath = os.path.join(networkDir, className+'Network.pth')
+    optimizerPath = os.path.join(networkDir, className+'Optimizer.pth')
+    resultsPath = os.path.join(networkDir, className+'loss.pickle')
     
     # Implicit values
-    modelPath = os.path.join(modelDir, )
+    #modelPath = os.path.join(modelDir, )
     keypointsPath = os.path.join(modelDir, str(classNameToIdx[className])+'_keypoints.txt')
     keypoints = parse_3D_keypoints(keypointsPath, addCenter=True) # MAKE SURE THERE ARE KEYPOINTS.TXT FOR EVERY MODEL
     nKeypoints = keypoints.shape[1]
@@ -431,14 +432,14 @@ def train_ica_full(className, dataDir, formats, resultsPath, skipInvisible = Fal
         	if nEpochSinceImprovement > patience:
         		print('EARLY STOPPING: Stopped at epoch {} after {} epochs without improvement'.format(iEpoch, patience))
         		return True
-        
-
 
     #End epoch loop
     
     if iEpoch == nEpochs:
-        	print('Stopped at epoch {} which was the final epoch.'.format(iEpoch))
+        print('Stopped at epoch {} which was the final epoch.'.format(iEpoch))
     	
+    return False # If not ended due to early stopping 
+
     # You're done! Save the results and move on with life.
     results = (trainLossTotal, trainLossVertexTotal, trainLossSegTotal, valLossTotal, valLossVertexTotal, valLossSegTotal)
     with open(resultsPath, 'wb') as f:
@@ -470,7 +471,7 @@ while True:
     for thisClass in classIdxDict:   
         resultsPath = os.path.join('/var/www/webdav/Data/ICA/Results/',str(thisClass),'results.pickle') # For loss series
 
-train_ica_full(className, dataDir, formats, resultsPath, skipInvisible,
-                   visThreshold, nEpochs, resumeTraining, 
-                   batchSize, lossRatio, patience, minDeltaFactor
-                   learningRate)
+	train_ica_full(className, dataDir, formats, resultsPath, skipInvisible,
+	                   visThreshold, nEpochs, resumeTraining, 
+	                   batchSize, lossRatio, patience, minDeltaFactor
+	                   learningRate)

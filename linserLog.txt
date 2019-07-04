@@ -1,0 +1,517 @@
+Reading pose data for scene 1/19Reading pose data for scene 2/19Reading pose data for scene 3/19Reading pose data for scene 4/19Reading pose data for scene 5/19Reading pose data for scene 6/19Reading pose data for scene 7/19Reading pose data for scene 8/19Reading pose data for scene 9/19Reading pose data for scene 10/19Reading pose data for scene 11/19Reading pose data for scene 12/19Reading pose data for scene 13/19Reading pose data for scene 14/19Reading pose data for scene 15/19Reading pose data for scene 16/19Reading pose data for scene 17/19Reading pose data for scene 18/19Reading pose data for scene 19/19
+Found 465 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene1/pvnet/rgb where at least one instance is visible.
+Found 311 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene11/pvnet/rgb where at least one instance is visible.
+Found 190 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene12/pvnet/rgb where at least one instance is visible.
+Found 0 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene14/pvnet/rgb where at least one instance is visible.
+Found 0 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene15/pvnet/rgb where at least one instance is visible.
+Found 211 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene17/pvnet/rgb where at least one instance is visible.
+Found 224 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene19/pvnet/rgb where at least one instance is visible.
+Found 501 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene2/pvnet/rgb where at least one instance is visible.
+Found 338 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene20/pvnet/rgb where at least one instance is visible.
+Found 336 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene21/pvnet/rgb where at least one instance is visible.
+Found 351 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene22/pvnet/rgb where at least one instance is visible.
+Found 271 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene23/pvnet/rgb where at least one instance is visible.
+Found 496 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene26/pvnet/rgb where at least one instance is visible.
+Found 315 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene27/pvnet/rgb where at least one instance is visible.
+Found 484 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene3/pvnet/rgb where at least one instance is visible.
+Found 499 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene4/pvnet/rgb where at least one instance is visible.
+Found 464 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene5/pvnet/rgb where at least one instance is visible.
+Found 615 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene7/pvnet/rgb where at least one instance is visible.
+Found 102 images in /var/www/webdav/Data/ICA/Scenes/Train/Scene8/pvnet/rgb where at least one instance is visible.
+A total of 6173 training images have been found.
+Reading pose data for scene 1/3Reading pose data for scene 2/3Reading pose data for scene 3/3
+Found 260 images in /var/www/webdav/Data/ICA/Scenes/Validation/Scene13/pvnet/rgb
+Found 385 images in /var/www/webdav/Data/ICA/Scenes/Validation/Scene25/pvnet/rgb
+Found 981 images in /var/www/webdav/Data/ICA/Scenes/Validation/Scene6/pvnet/rgb
+A total of 1626 validation images have been found.
+Attempting to resume training from checkpoint at /var/www/webdav/Data/ICA/Networks/linser/checkpoint.pth
+No checkpoint found at /var/www/webdav/Data/ICA/Networks/linser/checkpoint.pth, training network from scratch. Press enter to continue.
+
+################################################
+Starting epoch #0 out of 999
+################################################
+
+Ended training loop iteration 0/385, elapsed time is 8.285107374191284 seconds.
+Ended training loop iteration 38/385, elapsed time is 60.20927023887634 seconds.
+Expected time until end of training epoch: 579.8057045497393 seconds
+Ended training loop iteration 76/385, elapsed time is 112.23806929588318 seconds.
+Expected time until end of training epoch: 486.33636068984083 seconds
+Ended training loop iteration 114/385, elapsed time is 164.3245096206665 seconds.
+Expected time until end of training epoch: 420.63107111579495 seconds
+Ended training loop iteration 152/385, elapsed time is 216.38765573501587 seconds.
+Expected time until end of training epoch: 361.6994985938072 seconds
+Ended training loop iteration 190/385, elapsed time is 268.43968892097473 seconds.
+Expected time until end of training epoch: 305.5038912610003 seconds
+Ended training loop iteration 228/385, elapsed time is 320.50784611701965 seconds.
+Expected time until end of training epoch: 250.700578247246 seconds
+Ended training loop iteration 266/385, elapsed time is 372.5602719783783 seconds.
+Expected time until end of training epoch: 196.6717006219061 seconds
+Ended training loop iteration 304/385, elapsed time is 424.6284325122833 seconds.
+Expected time until end of training epoch: 143.14112839965446 seconds
+Ended training loop iteration 342/385, elapsed time is 476.69461488723755 seconds.
+Expected time until end of training epoch: 89.93528783669947 seconds
+Ended training loop iteration 380/385, elapsed time is 528.5661776065826 seconds.
+Expected time until end of training epoch: 36.954818126402365 seconds
+
+Training loss at the end of epoch 0: 0.12696180778083851
+Time elapsed: 561.0031843185425
+-----------------------------------------------------
+
+/home/comvis/anaconda3/envs/pt/lib/python3.7/site-packages/torch/nn/modules/upsampling.py:129: UserWarning: nn.UpsamplingBilinear2d is deprecated. Use nn.functional.interpolate instead.
+  warnings.warn("nn.{} is deprecated. Use nn.functional.interpolate instead.".format(self.name))
+/home/comvis/anaconda3/envs/pt/lib/python3.7/site-packages/torch/nn/_reduction.py:49: UserWarning: size_average and reduce args will be deprecated, please use reduction='none' instead.
+  warnings.warn(warning.format(ret))
+
+Validation loss at the end of epoch 0: 0.08430156546949157
+Time elapsed: 52.04047155380249
+-----------------------------------------------------
+
+All losses of epoch 0:
+trainLossTotal   0.12696180778083851
+trainLossVertexTotal   0.11312868317419836
+trainLossSegTotal   0.14079493220847134
+valLossTotal   0.08430156546949157
+valLossVertexTotal   0.09696387813085376
+valLossSegTotal   0.07163925282657146
+
+Epoch 0 took a total of 613.1740410327911 seconds.
+0 epochs since last improvement, early stopping after 5.
+-----------------------------------------------------
+
+Saved best model at the end of epoch 0.
+
+################################################
+Starting epoch #1 out of 999
+################################################
+
+Ended training loop iteration 0/385, elapsed time is 4.437625885009766 seconds.
+Ended training loop iteration 38/385, elapsed time is 56.53470420837402 seconds.
+Expected time until end of training epoch: 546.2511147448892 seconds
+Ended training loop iteration 76/385, elapsed time is 108.63791847229004 seconds.
+Expected time until end of training epoch: 471.6989053676003 seconds
+Ended training loop iteration 114/385, elapsed time is 160.68064284324646 seconds.
+Expected time until end of training epoch: 411.96889658350693 seconds
+Ended training loop iteration 152/385, elapsed time is 212.72170782089233 seconds.
+Expected time until end of training epoch: 356.07998633070997 seconds
+Ended training loop iteration 190/385, elapsed time is 264.783278465271 seconds.
+Expected time until end of training epoch: 301.7512594775149 seconds
+Ended training loop iteration 228/385, elapsed time is 316.83599948883057 seconds.
+Expected time until end of training epoch: 248.17215754274739 seconds
+Ended training loop iteration 266/385, elapsed time is 368.8675148487091 seconds.
+Expected time until end of training epoch: 195.01967769547514 seconds
+Ended training loop iteration 304/385, elapsed time is 420.9109938144684 seconds.
+Expected time until end of training epoch: 142.15062664135507 seconds
+Ended training loop iteration 342/385, elapsed time is 473.0994465351105 seconds.
+Expected time until end of training epoch: 89.48326374564255 seconds
+Ended training loop iteration 380/385, elapsed time is 525.1508104801178 seconds.
+Expected time until end of training epoch: 36.90987908526467 seconds
+
+Training loss at the end of epoch 1: 0.035244247370532625
+Time elapsed: 557.6011426448822
+-----------------------------------------------------
+
+
+Validation loss at the end of epoch 1: 0.05303050758372439
+Time elapsed: 52.5518856048584
+-----------------------------------------------------
+
+All losses of epoch 1:
+trainLossTotal   0.035244247370532625
+trainLossVertexTotal   0.055158223298850034
+trainLossSegTotal   0.015330271445843683
+valLossTotal   0.05303050758372439
+valLossVertexTotal   0.060825342625969704
+valLossSegTotal   0.045235672596805165
+
+Epoch 1 took a total of 610.2406537532806 seconds.
+1 epochs since last improvement, early stopping after 4.
+-----------------------------------------------------
+
+Saved best model at the end of epoch 1.
+
+################################################
+Starting epoch #2 out of 999
+################################################
+
+Ended training loop iteration 0/385, elapsed time is 4.1575987339019775 seconds.
+Ended training loop iteration 38/385, elapsed time is 56.21703314781189 seconds.
+Expected time until end of training epoch: 543.3502763760717 seconds
+Ended training loop iteration 76/385, elapsed time is 108.33939146995544 seconds.
+Expected time until end of training epoch: 470.4851574238978 seconds
+Ended training loop iteration 114/385, elapsed time is 160.38890600204468 seconds.
+Expected time until end of training epoch: 411.27538181187816 seconds
+Ended training loop iteration 152/385, elapsed time is 212.47311210632324 seconds.
+Expected time until end of training epoch: 355.6989152682455 seconds
+Ended training loop iteration 190/385, elapsed time is 264.6057050228119 seconds.
+Expected time until end of training epoch: 301.56901304972797 seconds
+Ended training loop iteration 228/385, elapsed time is 316.7295973300934 seconds.
+Expected time until end of training epoch: 248.09888938958187 seconds
+Ended training loop iteration 266/385, elapsed time is 368.82853984832764 seconds.
+Expected time until end of training epoch: 195.00224151109396 seconds
+Ended training loop iteration 304/385, elapsed time is 420.91772270202637 seconds.
+Expected time until end of training epoch: 142.1524195357373 seconds
+Ended training loop iteration 342/385, elapsed time is 472.95974946022034 seconds.
+Expected time until end of training epoch: 89.46569949353648 seconds
+Ended training loop iteration 380/385, elapsed time is 524.7603228092194 seconds.
+Expected time until end of training epoch: 36.90474108959496 seconds
+
+Training loss at the end of epoch 2: 0.020579414633284165
+Time elapsed: 557.225332736969
+-----------------------------------------------------
+
+
+Validation loss at the end of epoch 2: 0.03934186379803288
+Time elapsed: 51.96005368232727
+-----------------------------------------------------
+
+All losses of epoch 2:
+trainLossTotal   0.020579414633284165
+trainLossVertexTotal   0.03216054294403495
+trainLossSegTotal   0.008998286268105359
+valLossTotal   0.03934186379803288
+valLossVertexTotal   0.04708743530629886
+valLossSegTotal   0.03159629227593542
+
+Epoch 2 took a total of 609.2728230953217 seconds.
+1 epochs since last improvement, early stopping after 4.
+-----------------------------------------------------
+
+Saved best model at the end of epoch 2.
+
+################################################
+Starting epoch #3 out of 999
+################################################
+
+Ended training loop iteration 0/385, elapsed time is 4.4403769969940186 seconds.
+Ended training loop iteration 38/385, elapsed time is 56.50238108634949 seconds.
+Expected time until end of training epoch: 545.9559536042966 seconds
+Ended training loop iteration 76/385, elapsed time is 108.58206605911255 seconds.
+Expected time until end of training epoch: 471.4718212140234 seconds
+Ended training loop iteration 114/385, elapsed time is 160.62809038162231 seconds.
+Expected time until end of training epoch: 411.8439692405232 seconds
+Ended training loop iteration 152/385, elapsed time is 212.6821813583374 seconds.
+Expected time until end of training epoch: 356.0193964242935 seconds
+Ended training loop iteration 190/385, elapsed time is 264.8435409069061 seconds.
+Expected time until end of training epoch: 301.8131077728773 seconds
+Ended training loop iteration 228/385, elapsed time is 316.95096015930176 seconds.
+Expected time until end of training epoch: 248.25131905706306 seconds
+Ended training loop iteration 266/385, elapsed time is 369.03762650489807 seconds.
+Expected time until end of training epoch: 195.09578027850705 seconds
+Ended training loop iteration 304/385, elapsed time is 421.1311128139496 seconds.
+Expected time until end of training epoch: 142.20927676950632 seconds
+Ended training loop iteration 342/385, elapsed time is 473.2341742515564 seconds.
+Expected time until end of training epoch: 89.50020319537114 seconds
+Ended training loop iteration 380/385, elapsed time is 525.1488265991211 seconds.
+Expected time until end of training epoch: 36.90985298156735 seconds
+
+Training loss at the end of epoch 3: 0.014074595202389475
+Time elapsed: 557.6080806255341
+-----------------------------------------------------
+
+
+Validation loss at the end of epoch 3: 0.04449403923152402
+Time elapsed: 52.40406155586243
+-----------------------------------------------------
+
+All losses of epoch 3:
+trainLossTotal   0.014074595202389475
+trainLossVertexTotal   0.02164121097219841
+trainLossSegTotal   0.006507979404761807
+valLossTotal   0.04449403923152402
+valLossVertexTotal   0.04444001364235832
+valLossSegTotal   0.044548064746921606
+
+Epoch 3 took a total of 610.1026623249054 seconds.
+1 epochs since last improvement, early stopping after 4.
+-----------------------------------------------------
+
+
+################################################
+Starting epoch #4 out of 999
+################################################
+
+Ended training loop iteration 0/385, elapsed time is 4.188889503479004 seconds.
+Ended training loop iteration 38/385, elapsed time is 56.29473686218262 seconds.
+Expected time until end of training epoch: 544.0598339783518 seconds
+Ended training loop iteration 76/385, elapsed time is 108.40324783325195 seconds.
+Expected time until end of training epoch: 470.7447839536165 seconds
+Ended training loop iteration 114/385, elapsed time is 160.51073718070984 seconds.
+Expected time until end of training epoch: 411.5649980348453 seconds
+Ended training loop iteration 152/385, elapsed time is 212.60818195343018 seconds.
+Expected time until end of training epoch: 355.90596312598177 seconds
+Ended training loop iteration 190/385, elapsed time is 264.6944808959961 seconds.
+Expected time until end of training epoch: 301.6601251301012 seconds
+Ended training loop iteration 228/385, elapsed time is 316.7563064098358 seconds.
+Expected time until end of training epoch: 248.11728116817642 seconds
+Ended training loop iteration 266/385, elapsed time is 368.85346841812134 seconds.
+Expected time until end of training epoch: 195.01339376600168 seconds
+Ended training loop iteration 304/385, elapsed time is 420.92776823043823 seconds.
+Expected time until end of training epoch: 142.15509614034704 seconds
+Ended training loop iteration 342/385, elapsed time is 472.987092256546 seconds.
+Expected time until end of training epoch: 89.46913733050141 seconds
+Ended training loop iteration 380/385, elapsed time is 524.8798263072968 seconds.
+Expected time until end of training epoch: 36.90631350404334 seconds
+
+Training loss at the end of epoch 4: 0.011065897402389875
+Time elapsed: 557.3294560909271
+-----------------------------------------------------
+
+
+Validation loss at the end of epoch 4: 0.03129008785812275
+Time elapsed: 52.269842863082886
+-----------------------------------------------------
+
+All losses of epoch 4:
+trainLossTotal   0.011065897402389875
+trainLossVertexTotal   0.016851725792149427
+trainLossSegTotal   0.005280069078548582
+valLossTotal   0.03129008785812275
+valLossVertexTotal   0.03816158338311581
+valLossSegTotal   0.02441859239306633
+
+Epoch 4 took a total of 609.6893737316132 seconds.
+2 epochs since last improvement, early stopping after 3.
+-----------------------------------------------------
+
+Saved best model at the end of epoch 4.
+
+################################################
+Starting epoch #5 out of 999
+################################################
+
+Ended training loop iteration 0/385, elapsed time is 4.364346981048584 seconds.
+Ended training loop iteration 38/385, elapsed time is 56.46233057975769 seconds.
+Expected time until end of training epoch: 545.5902292414715 seconds
+Ended training loop iteration 76/385, elapsed time is 108.54670977592468 seconds.
+Expected time until end of training epoch: 471.3280700100096 seconds
+Ended training loop iteration 114/385, elapsed time is 160.59912061691284 seconds.
+Expected time until end of training epoch: 411.7751025191525 seconds
+Ended training loop iteration 152/385, elapsed time is 212.7128643989563 seconds.
+Expected time until end of training epoch: 356.06643029576855 seconds
+Ended training loop iteration 190/385, elapsed time is 264.8118941783905 seconds.
+Expected time until end of training epoch: 301.7806282357165 seconds
+Ended training loop iteration 228/385, elapsed time is 316.9457905292511 seconds.
+Expected time until end of training epoch: 248.24775926794922 seconds
+Ended training loop iteration 266/385, elapsed time is 369.09693121910095 seconds.
+Expected time until end of training epoch: 195.12231133486097 seconds
+Ended training loop iteration 304/385, elapsed time is 421.20660495758057 seconds.
+Expected time until end of training epoch: 142.22939145251325 seconds
+Ended training loop iteration 342/385, elapsed time is 473.3318655490875 seconds.
+Expected time until end of training epoch: 89.51248601932973 seconds
+Ended training loop iteration 380/385, elapsed time is 525.2351648807526 seconds.
+Expected time until end of training epoch: 36.91098901158881 seconds
+
+Training loss at the end of epoch 5: 0.015276299852442436
+Time elapsed: 557.6945786476135
+-----------------------------------------------------
+
+
+Validation loss at the end of epoch 5: 0.04139663395241347
+Time elapsed: 52.617398262023926
+-----------------------------------------------------
+
+All losses of epoch 5:
+trainLossTotal   0.015276299852442436
+trainLossVertexTotal   0.021956041380279255
+trainLossSegTotal   0.008596558352424344
+valLossTotal   0.04139663395241347
+valLossVertexTotal   0.04283489074816208
+valLossSegTotal   0.03995837694458148
+
+Epoch 5 took a total of 610.4009401798248 seconds.
+1 epochs since last improvement, early stopping after 4.
+-----------------------------------------------------
+
+
+################################################
+Starting epoch #6 out of 999
+################################################
+
+Ended training loop iteration 0/385, elapsed time is 4.390425205230713 seconds.
+Ended training loop iteration 38/385, elapsed time is 56.45436906814575 seconds.
+Expected time until end of training epoch: 545.5175280696468 seconds
+Ended training loop iteration 76/385, elapsed time is 108.5641131401062 seconds.
+Expected time until end of training epoch: 471.3988284249055 seconds
+Ended training loop iteration 114/385, elapsed time is 160.69781064987183 seconds.
+Expected time until end of training epoch: 412.00970777294094 seconds
+Ended training loop iteration 152/385, elapsed time is 212.79429817199707 seconds.
+Expected time until end of training epoch: 356.1912596978639 seconds
+Ended training loop iteration 190/385, elapsed time is 264.93562865257263 seconds.
+Expected time until end of training epoch: 301.90761888027185 seconds
+Ended training loop iteration 228/385, elapsed time is 316.99228382110596 seconds.
+Expected time until end of training epoch: 248.27977438558614 seconds
+Ended training loop iteration 266/385, elapsed time is 369.061399936676 seconds.
+Expected time until end of training epoch: 195.10641576114455 seconds
+Ended training loop iteration 304/385, elapsed time is 421.1615397930145 seconds.
+Expected time until end of training epoch: 142.2173839580072 seconds
+Ended training loop iteration 342/385, elapsed time is 473.28123688697815 seconds.
+Expected time until end of training epoch: 89.50612042731012 seconds
+Ended training loop iteration 380/385, elapsed time is 525.2266871929169 seconds.
+Expected time until end of training epoch: 36.91087746306466 seconds
+
+Training loss at the end of epoch 6: 0.008887180760986619
+Time elapsed: 557.6804356575012
+-----------------------------------------------------
+
+
+Validation loss at the end of epoch 6: 0.0392343248471175
+Time elapsed: 52.361332178115845
+-----------------------------------------------------
+
+All losses of epoch 6:
+trainLossTotal   0.008887180760986619
+trainLossVertexTotal   0.01298619353805076
+trainLossSegTotal   0.004788168020812529
+valLossTotal   0.0392343248471175
+valLossVertexTotal   0.03823230517013827
+valLossSegTotal   0.04023634455175976
+
+Epoch 6 took a total of 610.1322207450867 seconds.
+2 epochs since last improvement, early stopping after 3.
+-----------------------------------------------------
+
+
+################################################
+Starting epoch #7 out of 999
+################################################
+
+Ended training loop iteration 0/385, elapsed time is 4.371190786361694 seconds.
+Ended training loop iteration 38/385, elapsed time is 56.41207551956177 seconds.
+Expected time until end of training epoch: 545.1313211917877 seconds
+Ended training loop iteration 76/385, elapsed time is 108.5011215209961 seconds.
+Expected time until end of training epoch: 471.1427177629973 seconds
+Ended training loop iteration 114/385, elapsed time is 160.59912395477295 seconds.
+Expected time until end of training epoch: 411.7751104538901 seconds
+Ended training loop iteration 152/385, elapsed time is 212.69781374931335 seconds.
+Expected time until end of training epoch: 356.0433592341448 seconds
+Ended training loop iteration 190/385, elapsed time is 264.80038142204285 seconds.
+Expected time until end of training epoch: 301.7688125120966 seconds
+Ended training loop iteration 228/385, elapsed time is 316.9131679534912 seconds.
+Expected time until end of training epoch: 248.22529547674614 seconds
+Ended training loop iteration 266/385, elapsed time is 369.00522804260254 seconds.
+Expected time until end of training epoch: 195.08128622958537 seconds
+Ended training loop iteration 304/385, elapsed time is 421.1430151462555 seconds.
+Expected time until end of training epoch: 142.2124481146273 seconds
+Ended training loop iteration 342/385, elapsed time is 473.2579996585846 seconds.
+Expected time until end of training epoch: 89.50319878748286 seconds
+Ended training loop iteration 380/385, elapsed time is 525.0734543800354 seconds.
+Expected time until end of training epoch: 36.90886124184254 seconds
+
+Training loss at the end of epoch 7: 0.007343389603079526
+Time elapsed: 557.5043179988861
+-----------------------------------------------------
+
+
+Validation loss at the end of epoch 7: 0.036955819852502646
+Time elapsed: 52.10338592529297
+-----------------------------------------------------
+
+All losses of epoch 7:
+trainLossTotal   0.007343389603079526
+trainLossVertexTotal   0.010681261730610158
+trainLossSegTotal   0.0040055174888535
+valLossTotal   0.036955819852502646
+valLossVertexTotal   0.03603713727085898
+valLossSegTotal   0.03787450263239813
+
+Epoch 7 took a total of 609.6965363025665 seconds.
+3 epochs since last improvement, early stopping after 2.
+-----------------------------------------------------
+
+
+################################################
+Starting epoch #8 out of 999
+################################################
+
+Ended training loop iteration 0/385, elapsed time is 4.102532863616943 seconds.
+Ended training loop iteration 38/385, elapsed time is 56.166980504989624 seconds.
+Expected time until end of training epoch: 542.8932167166158 seconds
+Ended training loop iteration 76/385, elapsed time is 108.31577181816101 seconds.
+Expected time until end of training epoch: 470.38912489225993 seconds
+Ended training loop iteration 114/385, elapsed time is 160.41661953926086 seconds.
+Expected time until end of training epoch: 411.3412622380675 seconds
+Ended training loop iteration 152/385, elapsed time is 212.51873660087585 seconds.
+Expected time until end of training epoch: 355.7688528158163 seconds
+Ended training loop iteration 190/385, elapsed time is 264.624516248703 seconds.
+Expected time until end of training epoch: 301.5883193078794 seconds
+Ended training loop iteration 228/385, elapsed time is 316.7173066139221 seconds.
+Expected time until end of training epoch: 248.09042604555165 seconds
+Ended training loop iteration 266/385, elapsed time is 368.85991382598877 seconds.
+Expected time until end of training epoch: 195.01627723794238 seconds
+Ended training loop iteration 304/385, elapsed time is 420.92601585388184 seconds.
+Expected time until end of training epoch: 142.15462922422512 seconds
+Ended training loop iteration 342/385, elapsed time is 473.03871417045593 seconds.
+Expected time until end of training epoch: 89.47562780505734 seconds
+Ended training loop iteration 380/385, elapsed time is 524.9493310451508 seconds.
+Expected time until end of training epoch: 36.907228040067736 seconds
+
+Training loss at the end of epoch 8: 0.006487889935008506
+Time elapsed: 557.443384885788
+-----------------------------------------------------
+
+
+Validation loss at the end of epoch 8: 0.038873843673506
+Time elapsed: 51.918964862823486
+-----------------------------------------------------
+
+All losses of epoch 8:
+trainLossTotal   0.006487889935008506
+trainLossVertexTotal   0.009361708182357724
+trainLossSegTotal   0.003614071687659273
+valLossTotal   0.038873843673506
+valLossVertexTotal   0.03560102724534746
+valLossSegTotal   0.04214666004172794
+
+Epoch 8 took a total of 609.4520547389984 seconds.
+4 epochs since last improvement, early stopping after 1.
+-----------------------------------------------------
+
+
+################################################
+Starting epoch #9 out of 999
+################################################
+
+Ended training loop iteration 0/385, elapsed time is 4.238231897354126 seconds.
+Ended training loop iteration 38/385, elapsed time is 56.35889172554016 seconds.
+Expected time until end of training epoch: 544.6456691779589 seconds
+Ended training loop iteration 76/385, elapsed time is 108.36806988716125 seconds.
+Expected time until end of training epoch: 470.60175783069513 seconds
+Ended training loop iteration 114/385, elapsed time is 160.49959135055542 seconds.
+Expected time until end of training epoch: 411.5385022456186 seconds
+Ended training loop iteration 152/385, elapsed time is 212.64959597587585 seconds.
+Expected time until end of training epoch: 355.96944646302023 seconds
+Ended training loop iteration 190/385, elapsed time is 264.8854353427887 seconds.
+Expected time until end of training epoch: 301.8561046939147 seconds
+Ended training loop iteration 228/385, elapsed time is 317.08399534225464 seconds.
+Expected time until end of training epoch: 248.3429266172543 seconds
+Ended training loop iteration 266/385, elapsed time is 369.4996473789215 seconds.
+Expected time until end of training epoch: 195.30247382741229 seconds
+Ended training loop iteration 304/385, elapsed time is 421.6703062057495 seconds.
+Expected time until end of training epoch: 142.35294342982144 seconds
+Ended training loop iteration 342/385, elapsed time is 474.08543062210083 seconds.
+Expected time until end of training epoch: 89.60723250511795 seconds
+Ended training loop iteration 380/385, elapsed time is 526.1119174957275 seconds.
+Expected time until end of training epoch: 36.9225252302069 seconds
+
+Training loss at the end of epoch 9: 0.005802011090125161
+Time elapsed: 558.61301612854
+-----------------------------------------------------
+
+
+Validation loss at the end of epoch 9: 0.03655822482882159
+Time elapsed: 52.448038816452026
+-----------------------------------------------------
+
+All losses of epoch 9:
+trainLossTotal   0.005802011090125161
+trainLossVertexTotal   0.008246342263293337
+trainLossSegTotal   0.003357679903954752
+valLossTotal   0.03655822482882159
+valLossVertexTotal   0.03497395165596562
+valLossSegTotal   0.038142498075445695
+
+Epoch 9 took a total of 611.152951002121 seconds.
+5 epochs since last improvement, early stopping after 0.
+-----------------------------------------------------
+
+EARLY STOPPING: Stopped at epoch 9 after 5 epochs without improvement

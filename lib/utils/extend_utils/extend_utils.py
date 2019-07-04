@@ -81,17 +81,19 @@ def uncertainty_pnp(points_2d, weights_2d, points_3d, camera_matrix):
     weights_2d=weights_2d.astype(np.float64)
     camera_matrix=camera_matrix.astype(np.float64)
 
-    idxs=np.argsort(weights_2d[:,0]+weights_2d[:,1])[-4:]
+    idxs=np.argsort(weights_2d[:,0]+weights_2d[:,2])[-4:]
 
     _, R_exp, t=cv2.solvePnP(np.expand_dims(points_3d[idxs,:],0),
                              np.expand_dims(points_2d[idxs,:],0),
-                             camera_matrix,dist_coeffs,None,None,False,flags=cv2.SOLVEPNP_P3P)
+                             camera_matrix,dist_coeffs,None,None,False,flags=cv2.SOLVEPNP_EPNP)
 
     if pn==4:
         # no other points
         R, _ = cv2.Rodrigues(R_exp)
         Rt=np.concatenate([R, t], axis=-1)
         return Rt
+
+    R, _ = cv2.Rodrigues(R_exp)
 
     points_2d=np.ascontiguousarray(points_2d,np.float64)
     points_3d=np.ascontiguousarray(points_3d,np.float64)

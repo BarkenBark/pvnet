@@ -5,10 +5,11 @@ sys.path.append('..')
 from lib.networks.model_repository import *
 from lib.utils.arg_utils import args
 from lib.utils.net_utils import smooth_l1_loss, load_model, compute_precision_recall
-from lib.ransac_voting_gpu_layer.ransac_voting_gpu import ransac_voting_layer_v3
-from lib.utils.evaluation_utils import pnp
+from lib.ransac_voting_gpu_layer.ransac_voting_gpu import ransac_voting_layer_v3, estimate_voting_distribution_with_mean
+from lib.utils.evaluation_utils import pnp, Evaluator
 from lib.utils.draw_utils import imagenet_to_uint8, visualize_bounding_box, visualize_mask,visualize_vertex_field, visualize_overlap_mask, visualize_points
 from lib.utils.base_utils import Projector
+from lib.utils.extend_utils.extend_utils import uncertainty_pnp
 import json
 
 from lib.utils.config import cfg
@@ -20,12 +21,13 @@ import os
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy
 
 with open(args.cfg_file, 'r') as f:
     train_cfg = json.load(f)
 train_cfg['model_name'] = '{}_{}'.format(args.linemod_cls, train_cfg['model_name'])
 
-vote_num = 10
+vote_num = 9
 
 
 class NetWrapper(nn.Module):
@@ -54,6 +56,18 @@ class EvalWrapper(nn.Module):
             mask = seg_pred
         return ransac_voting_layer_v3(mask, vertex_pred, 512, inlier_thresh=0.99)
 
+class EvalWrapper2(nn.Module):
+    def forward(self, seg_pred, vertex_pred, use_argmax=True):
+        vertex_pred = vertex_pred.permute(0, 2, 3, 1)
+        b, h, w, vn_2 = vertex_pred.shape
+        vertex_pred = vertex_pred.view(b, h, w, vn_2 // 2, 2)
+        if use_argmax:
+            mask = torch.argmax(seg_pred, 1)
+        else:
+            mask = seg_pred
+        mean = ransac_voting_layer_v3(mask, vertex_pred, 512, inlier_thresh=0.99)
+        mean, covar = estimate_voting_distribution_with_mean(mask, vertex_pred, mean) # [b,vn,2], [b,vn,2,2]
+        return mean, covar
 
 def compute_vertex(mask, points_2d):
     num_keypoints = points_2d.shape[0]
@@ -74,7 +88,7 @@ def compute_vertex(mask, points_2d):
 def read_data():
     import torchvision.transforms as transforms
 
-    demo_dir_path = os.path.join(cfg.DATA_DIR, 'ICA/demo')
+    demo_dir_path = os.path.join(cfg.DATA_DIR, 'demo')
     rgb = Image.open(os.path.join(demo_dir_path, 'cat.jpg'))
     mask = np.array(Image.open(os.path.join(demo_dir_path, 'cat_mask.png')).convert('RGB')).astype(np.int32)[..., 0]
     mask[mask != 0] = 1
@@ -110,7 +124,7 @@ def demo():
     net = DataParallel(net)
 
     optimizer = optim.Adam(net.parameters(), lr=train_cfg['lr'])
-    model_dir = os.path.join(cfg.MODEL_DIR, 'ica_demo')
+    model_dir = os.path.join(cfg.MODEL_DIR, 'cat_demo')
     load_model(net.module.net, optimizer, model_dir, args.load_epoch)
     data, points_3d, bb8_3d = read_data()
     image, mask, vertex, vertex_weights, pose, corner_target = [d.unsqueeze(0).cuda() for d in data]
@@ -127,24 +141,49 @@ def demo():
     print(' ')
 
     # Various visualizations
-    visualize_vertex_field(vertex_pred,vertex_weights, keypointIdx=3)
+    #visualize_vertex_field(vertex_pred,vertex_weights, keypointIdx=3)
     print('asdasdsadas')
     print(seg_pred.shape, mask.shape)
     visualize_mask(np.squeeze(seg_pred.cpu().detach().numpy()), mask.cpu().detach().numpy())
     rgb = Image.open('data/demo/cat.jpg')
     img = np.array(rgb)
-    visualize_overlap_mask(img, np.squeeze(seg_pred.cpu().detach().numpy()), None)
+    #visualize_overlap_mask(img, np.squeeze(seg_pred.cpu().detach().numpy()), None)
 
     # Run the ransac voting
-    eval_net = DataParallel(EvalWrapper().cuda())
-    corner_pred = eval_net(seg_pred, vertex_pred).cpu().detach().numpy()[0]
+    eval_net = DataParallel(EvalWrapper2().cuda())
+    #corner_pred = eval_net(seg_pred, vertex_pred).cpu().detach().numpy()[0]
+    corner_pred, covar = [x.cpu().detach().numpy()[0] for x in eval_net(seg_pred, vertex_pred)]
     print('Keypoint predictions:')
     print(corner_pred)
+    print(' ')
+    print('covar: ', covar)
     print(' ')
     camera_matrix = np.array([[572.4114, 0., 325.2611],
                               [0., 573.57043, 242.04899],
                               [0., 0., 1.]])
-    pose_pred = pnp(points_3d, corner_pred, camera_matrix)
+
+
+    # Fit pose to points
+    #pose_pred = pnp(points_3d, corner_pred, camera_matrix)
+    #evaluator = Evaluator()
+    #pose_pred = evaluator.evaluate_uncertainty(corner_pred,covar,pose,'cat',intri_matrix=camera_matrix)
+
+    def getWeights(covar):
+        cov_invs = []
+        for vi in range(covar.shape[0]): # For every keypoint
+            if covar[vi,0,0]<1e-6 or np.sum(np.isnan(covar)[vi])>0:
+                cov_invs.append(np.zeros([2,2]).astype(np.float32))
+                continue
+            cov_inv = np.linalg.inv(scipy.linalg.sqrtm(covar[vi]))
+            cov_invs.append(cov_inv)
+        cov_invs = np.asarray(cov_invs)  # pn,2,2
+        weights = cov_invs.reshape([-1, 4])
+        weights = weights[:, (0, 1, 3)]
+        return weights
+
+    weights = getWeights(covar)
+    pose_pred = uncertainty_pnp(corner_pred, weights, points_3d, camera_matrix)
+
     print('Predicted pose: \n', pose_pred)
     print('Ground truth pose: \n', pose[0].detach().cpu().numpy())
     print(' ')

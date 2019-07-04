@@ -1,4 +1,3 @@
-
 # Own utils
 from lib.ica.utils import pltColorCycler
 
@@ -7,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from mpl_toolkits.mplot3d import Axes3D
-from transforms3d.euler import euler2mat
+#from transforms3d.euler import euler2mat
 from skimage.io import imsave
 from PIL import Image
 import os
@@ -82,21 +81,22 @@ def visualize_mask(mask_pred,mask_gt, save=False, save_fn=None):
     print(' ')
 
 def visualize_vertex_field(verPred, mask, keypointIdx=0):
-    
     print('Visualizing Vertex Field.')
 
-    verWeight = mask.float().cpu().detach()
+    verWeight = mask.float().cpu()
     verWeight = verWeight[None,:,:,:]
 
-    _,_,h,w=verWeight.detach().cpu().numpy().shape
+    _,_,h,w=verWeight.numpy().shape
     angle = np.zeros((h,w))
-    pred = verPred.detach().cpu().numpy()
+    pred = verPred.cpu().numpy()
 
-    for i in range(h):
-        for j in range(w):
-            x,y = pred[0,[2*keypointIdx,2*keypointIdx+1],i,j]
-            angle[i,j] = np.arctan2(-y,x)
-    angle = angle*verWeight.detach().cpu().numpy()[0,0,:,:]
+    # for i in range(h):
+    #     for j in range(w):
+    #         x,y = pred[0,[2*keypointIdx,2*keypointIdx+1],i,j]
+    #         angle[i,j] = np.arctan2(-y,x)
+    x,y = verPred.cpu().numpy()[0,[2*keypointIdx, 2*keypointIdx+1],:,:]
+    angle = np.arctan2(-y,x)
+    angle = angle*verWeight.numpy()[0,0,:,:]
     plt.imshow(angle)
     plt.hsv()
     plt.show()
@@ -430,6 +430,7 @@ def visualize_hypothesis_center(img, hypothesesPoints, scores, centers=None):
     c = scores.ravel()
     c = c/np.max(c)
     plt.scatter(hypothesesPoints[:,0], hypothesesPoints[:,1], s=0.5, c=c, alpha=0.5, marker=',')
+    plt.colorbar()
     if centers is not None:
         plt.scatter(centers[0,:], centers[1,:], c='red')
     if img is not None:
@@ -481,13 +482,16 @@ def visualize_lines(img, lines, borders):
     plt.show()
     
 
-def visualize_hypothesis_center_3d(hypothesesPoints, scores, centers=None, borders=None):
+def visualize_hypothesis_center_3d(hypothesisPoints, scores=None, centers=None, borders=None):
     # hypothesisPoints - (nHypotheses, 3) np array
     # scores - (nHypotheses,) np array with scores of each hypothesis
-    # centers - (nCenters, 3) np array containing som reference points to plot  
+    # centers - (nCenters, 3) np array containing some reference points to plot  
+    if scores is None:
+        scores = np.ones((hypothesisPoints.shape[0],))
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    scatter = ax.scatter(hypothesesPoints[:,0], hypothesesPoints[:,1], hypothesesPoints[:,2], s=0.5, c=scores.ravel(), alpha=0.5, marker='.')
+    ax.axis('equal')
+    scatter = ax.scatter(hypothesisPoints[:,0], hypothesisPoints[:,1], hypothesisPoints[:,2], s=0.5, c=scores.ravel(), alpha=0.5, marker='.')
     cb = fig.colorbar(scatter, ax=ax)
     if centers is not None:
         ax.scatter(centers[:,0], centers[:,1], centers[:,2], c='red', alpha=0.25)
@@ -499,7 +503,7 @@ def visualize_hypothesis_center_3d(hypothesesPoints, scores, centers=None, borde
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
     plt.show()
-    
+
     
     
     

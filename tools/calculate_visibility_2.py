@@ -12,6 +12,7 @@ import time
 import argparse
 import numpy as np
 from PIL import Image
+from open3d import read_point_cloud
 
 # Import pvnet moduels
 from lib.utils.data_utils import read_rgb_np
@@ -49,7 +50,9 @@ print('Loading pointclouds...')
 tStart = time.time()
 cadX = []
 for iClass in range(nClasses):
-	cadX.append(load_model_pointcloud(paths['modelDir'], iClass+1)[::20,:])
+	#cadX.append(load_model_pointcloud(paths['modelDir'], iClass+1)[::20,:])
+	modelPath = os.path.join(paths['modelDir'], str(iClass+1)+'.ply')
+	cadX.append(np.asarray(read_point_cloud(modelPath).points)[::20,:])
 print('Fininshed loading pointclouds after {} seconds.'.format(time.time() - tStart))
 
 # Parse the image width and height (assuming they all share the width/height of image 1)
